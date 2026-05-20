@@ -7,6 +7,42 @@ from datetime import datetime
 from models import db, User, Store, DREEntry, Parameter, SimplesNacionalTable
 from calculations import calculate_dre, calculate_annual_summary
 
+
+def _seed_defaults():
+    """Insere parametros e dados iniciais se o banco estiver vazio."""
+    defaults = [
+        ('taxa_cartao_credito', '0.01275', 'Taxa Cartao Credito (1,275%)', 'taxas'),
+        ('taxa_cartao_debito',  '0.002225', 'Taxa Cartao Debito (0,2225%)', 'taxas'),
+        ('perc_fp_franquia',   '0.012222', 'Fundo de Promocao Franquia (1,2222%)', 'franquia'),
+        ('lr_pis',   '0.0165', 'PIS Lucro Real (1,65%)', 'lucro_real'),
+        ('lr_cofins', '0.076', 'COFINS Lucro Real (7,60%)', 'lucro_real'),
+        ('lr_irpj',  '0.15',  'IRPJ Lucro Real (15%)', 'lucro_real'),
+        ('lr_csll',  '0.09',  'CSLL Lucro Real (9%)', 'lucro_real'),
+        ('lr_irpj_adicional', '0.10', 'IRPJ Adicional (10%)', 'lucro_real'),
+        ('lr_irpj_adicional_threshold', '20000.0', 'Limite IRPJ Adicional (R$20.000)', 'lucro_real'),
+    ]
+    for key, value, desc, cat in defaults:
+        if not Parameter.query.filter_by(key=key).first():
+            db.session.add(Parameter(key=key, value=value, description=desc, category=cat))
+
+    if SimplesNacionalTable.query.count() == 0:
+        for mn, mx, rate in [
+            (0, 120000, 0.04), (120000.01, 240000, 0.0547), (240000.01, 360000, 0.0684),
+            (360000.01, 480000, 0.0754), (480000.01, 600000, 0.076), (600000.01, 720000, 0.0828),
+            (720000.01, 840000, 0.0836), (840000.01, 960000, 0.0845), (960000.01, 1080000, 0.0903),
+            (1080000.01, 1200000, 0.0912), (1200000.01, 1320000, 0.0995), (1320000.01, 1440000, 0.1004),
+            (1440000.01, 1560000, 0.1013), (1560000.01, 1680000, 0.1023), (1680000.01, 1800000, 0.1032),
+            (1800000.01, 1920000, 0.1123), (1920000.01, 2040000, 0.1132), (2040000.01, 2160000, 0.1142),
+            (2160000.01, 2280000, 0.1151), (2280000.01, 4800000, 0.1161),
+        ]:
+            db.session.add(SimplesNacionalTable(min_revenue=mn, max_revenue=mx, rate=rate))
+
+    if Store.query.count() == 0:
+        db.session.add(Store(name='Loja Modelo', city='Cidade'))
+
+    db.session.commit()
+
+
 # ── App factory ──────────────────────────────────────────────────────────────
 
 def create_app():
@@ -18,9 +54,14 @@ def create_app():
 
     db.init_app(app)
 
+    # Cria tabelas e dados padrão dentro do contexto do app
+    with app.app_context():
+        db.create_all()
+        _seed_defaults()
+
     login_manager = LoginManager(app)
     login_manager.login_view = 'login'
-    login_manager.login_message = 'Por favor, faça login para acessar esta página.'
+    login_manager.login_message = 'Por favor, faca login para acessar esta pagina.'
     login_manager.login_message_category = 'warning'
 
     @login_manager.user_loader
@@ -439,6 +480,16 @@ def create_app():
 
     # ── Error handlers ────────────────────────────────────────────────────────
 
+    @app.route('/health')
+    def health():
+        from flask import jsonify
+        try:
+            user_count = User.query.count()
+            store_count = Store.query.count()
+            return jsonify(status='ok', users=user_count, stores=store_count), 200
+        except Exception as e:
+            return jsonify(status='error', message=str(e)), 500
+
     @app.errorhandler(403)
     def forbidden(e):
         return render_template('errors/403.html'), 403
@@ -589,11 +640,6 @@ def create_app():
 
 
 app = create_app()
-
-# Garante que as tabelas e dados padrão existam ao iniciar
-with app.app_context():
-    from init_db import init_db
-    init_db()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
