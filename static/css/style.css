@@ -1,56 +1,159 @@
-/* ── DRE Tiptop – Custom Styles ─────────────────────────────────────────── */
+/* ── DRE Tiptop – Brand Identity (Azul + Vermelho) ───────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
 :root {
-  --primary: #0d6efd;
-  --font-base: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --tt-blue:        #00AEEF;   /* Azul Tiptop */
+  --tt-blue-dark:   #0090C8;
+  --tt-blue-light:  #E6F7FD;
+  --tt-red:         #E8192C;   /* Vermelho Tiptop */
+  --tt-red-dark:    #C4101F;
+  --tt-red-light:   #FDEBEC;
+  --tt-white:       #FFFFFF;
+  --tt-gray-bg:     #F4F8FB;
+  --tt-gray-text:   #4A5568;
+  --tt-border:      #D1E9F6;
+  --font-base: 'Nunito', 'Segoe UI', system-ui, sans-serif;
 }
 
+/* ── Reset / Base ────────────────────────────────────────────────────────── */
 body {
   font-family: var(--font-base);
-  background: #f4f6f9;
-  font-size: 0.925rem;
+  background: var(--tt-gray-bg);
+  color: var(--tt-gray-text);
+  font-size: 0.93rem;
+}
+
+/* ── Navbar ─────────────────────────────────────────────────────────────── */
+.navbar {
+  background: linear-gradient(90deg, var(--tt-red) 0%, var(--tt-red-dark) 100%) !important;
+  box-shadow: 0 2px 8px rgba(232,25,44,0.25);
+  padding: 0.5rem 1rem;
+}
+
+.navbar-brand {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: #fff !important;
+}
+
+.navbar-brand .bi {
+  color: var(--tt-blue) !important;
+}
+
+.navbar .nav-link {
+  color: rgba(255,255,255,0.9) !important;
+  font-weight: 600;
+  transition: color 0.15s;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+  color: #fff !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.navbar .dropdown-menu {
+  border: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  border-radius: 10px;
+  border-top: 3px solid var(--tt-blue);
+}
+
+.navbar .badge.bg-light {
+  background: rgba(255,255,255,0.25) !important;
+  color: #fff !important;
+}
+
+/* ── Botões ──────────────────────────────────────────────────────────────── */
+.btn-primary {
+  background: var(--tt-blue) !important;
+  border-color: var(--tt-blue) !important;
+  font-weight: 700;
+}
+.btn-primary:hover {
+  background: var(--tt-blue-dark) !important;
+  border-color: var(--tt-blue-dark) !important;
+}
+
+.btn-danger, .btn-outline-danger:hover {
+  background: var(--tt-red) !important;
+  border-color: var(--tt-red) !important;
+}
+
+.btn-success {
+  font-weight: 700;
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────────── */
+.card {
+  border-radius: 12px;
+  border: 1px solid var(--tt-border);
+  box-shadow: 0 2px 8px rgba(0,174,239,0.06);
+}
+
+.card-header {
+  border-radius: 12px 12px 0 0 !important;
+  padding: 10px 16px;
+  font-weight: 700;
+}
+
+/* Header azul Tiptop para cards principais */
+.card-header.bg-primary,
+.card-header[style*="background:#1a6faf"],
+.card-header[style*="background:#117a65"],
+.card-header[style*="background:#2c3e50"] {
+  background: var(--tt-blue) !important;
 }
 
 /* ── Stat Cards ─────────────────────────────────────────────────────────── */
 .stat-card {
-  border: 1px solid;
-  border-radius: 10px;
+  border: 1.5px solid;
+  border-radius: 12px;
   padding: 14px 16px;
   min-height: 90px;
-  transition: transform 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s;
+  background: #fff;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0,174,239,0.15);
 }
 
 .stat-label {
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .04em;
-  color: #6c757d;
+  letter-spacing: .06em;
+  color: var(--tt-gray-text);
   margin-bottom: 4px;
 }
 
 .stat-value {
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.2;
 }
 
 .stat-sub {
   font-size: 0.78rem;
-  color: #6c757d;
+  color: #718096;
   margin-top: 2px;
 }
 
-/* ── Month Cards ────────────────────────────────────────────────────────── */
+/* Cores das stat-cards seguindo paleta Tiptop */
+.bg-primary-subtle  { background: var(--tt-blue-light) !important; }
+.border-primary     { border-color: var(--tt-blue) !important; }
+.text-primary       { color: var(--tt-blue) !important; }
+
+/* ── Month Cards ─────────────────────────────────────────────────────────── */
 .month-card {
   display: block;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
+  border: 1.5px solid var(--tt-border);
+  border-radius: 10px;
   padding: 10px 8px;
   text-align: center;
   background: #fff;
@@ -59,91 +162,134 @@ body {
 }
 
 .month-card:hover {
-  box-shadow: 0 3px 10px rgba(0,0,0,.12);
-  border-color: var(--primary);
+  box-shadow: 0 4px 14px rgba(0,174,239,0.18);
+  border-color: var(--tt-blue);
   transform: translateY(-2px);
+  color: inherit;
 }
 
 .month-card.empty {
-  background: #f8f9fa;
+  background: #f9fbfd;
   border-style: dashed;
+  border-color: #b3d9ef;
 }
 
-.month-card.positive { border-left: 3px solid #198754; }
-.month-card.negative { border-left: 3px solid #dc3545; }
+.month-card.positive { border-left: 3px solid #38a169; }
+.month-card.negative { border-left: 3px solid var(--tt-red); }
 
 .month-name {
-  font-weight: 700;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  color: #495057;
-}
-
-.month-fat {
-  font-size: 0.7rem;
-  color: #6c757d;
-  margin-top: 2px;
-}
-
-.month-lucro {
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.78rem;
-  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--tt-blue-dark);
 }
 
-.month-pct {
-  font-size: 0.72rem;
+.month-fat  { font-size: 0.68rem; color: #718096; margin-top: 2px; }
+.month-lucro { font-weight: 800; font-size: 0.78rem; margin-top: 2px; }
+.month-pct  { font-size: 0.72rem; }
+
+/* ── Login page ──────────────────────────────────────────────────────────── */
+.login-page {
+  background: linear-gradient(135deg, var(--tt-blue) 0%, var(--tt-blue-dark) 50%, var(--tt-red-dark) 100%);
+  min-height: 100vh;
 }
 
-/* ── DRE Table ──────────────────────────────────────────────────────────── */
+.login-card .card-header {
+  background: linear-gradient(90deg, var(--tt-red) 0%, var(--tt-red-dark) 100%) !important;
+  text-align: center;
+  padding: 28px 20px 20px;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+.login-logo {
+  width: 72px;
+  height: 72px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  font-size: 2rem;
+}
+
+/* ── Tables ──────────────────────────────────────────────────────────────── */
+.table thead.table-dark th {
+  background: var(--tt-red) !important;
+  border-color: var(--tt-red-dark) !important;
+  font-weight: 700;
+}
+
 .dre-table td, .dre-table th {
   padding: 5px 12px;
   vertical-align: middle;
 }
 
 .dre-table tbody tr:hover {
-  background-color: rgba(13, 110, 253, 0.04);
+  background-color: var(--tt-blue-light);
 }
 
-/* ── Cards ──────────────────────────────────────────────────────────────── */
-.card {
-  border-radius: 10px;
-  border: 1px solid rgba(0,0,0,.08);
+.table-primary {
+  background: var(--tt-blue-light) !important;
 }
 
-.card-header {
-  border-radius: 10px 10px 0 0 !important;
-  padding: 10px 16px;
+/* ── Dashboard header ────────────────────────────────────────────────────── */
+h3.fw-bold .text-primary { color: var(--tt-blue) !important; }
+h3.fw-bold .bi { color: var(--tt-blue); }
+
+/* ── Alerts / badges ─────────────────────────────────────────────────────── */
+.badge.bg-primary { background: var(--tt-blue) !important; }
+.badge.bg-success { background: #38a169 !important; }
+.badge.bg-danger  { background: var(--tt-red) !important; }
+.badge.bg-info    { background: var(--tt-blue) !important; }
+
+.alert-primary {
+  background: var(--tt-blue-light);
+  border-color: var(--tt-blue);
+  color: var(--tt-blue-dark);
 }
 
-/* ── Navbar ─────────────────────────────────────────────────────────────── */
-.navbar-brand {
-  font-size: 1.1rem;
+.alert-info {
+  background: var(--tt-blue-light);
+  border-color: var(--tt-blue);
+  color: var(--tt-blue-dark);
 }
 
-/* ── Progress bar for "purple" ──────────────────────────────────────────── */
-.bg-purple { background-color: #7c3aed !important; }
+/* ── Form ────────────────────────────────────────────────────────────────── */
+.form-control:focus, .form-select:focus {
+  border-color: var(--tt-blue);
+  box-shadow: 0 0 0 0.2rem rgba(0,174,239,0.2);
+}
 
-/* ── Print styles ───────────────────────────────────────────────────────── */
+.form-label.fw-semibold { color: #2d3748; }
+
+/* ── Collapsible chevron ─────────────────────────────────────────────────── */
+[data-bs-toggle="collapse"] .bi-chevron-down {
+  transition: transform 0.2s;
+}
+[data-bs-toggle="collapse"][aria-expanded="false"] .bi-chevron-down {
+  transform: rotate(-90deg);
+}
+
+/* ── Section headers coloridos ───────────────────────────────────────────── */
+.card-header[style*="background:#c0392b"] { background: var(--tt-red)  !important; }
+.card-header[style*="background:#7d3c98"] { background: #6c3483 !important; }
+.card-header[style*="background:#b7770d"] { background: #d4830f !important; }
+.card-header.bg-secondary { background: #4A5568 !important; }
+.card-header.bg-dark      { background: #2d3748 !important; }
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: var(--tt-blue); border-radius: 3px; }
+
+/* ── Print ───────────────────────────────────────────────────────────────── */
 @media print {
   nav, .btn, .d-flex.gap-2, form { display: none !important; }
   .card { box-shadow: none !important; border: 1px solid #ccc !important; }
   body { background: white; }
-  .stat-card { min-height: auto; }
 }
 
-/* ── Form improvements ──────────────────────────────────────────────────── */
-.form-control:focus, .form-select:focus {
-  border-color: #86b7fe;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
-}
-
-/* ── Collapsible section chevron ────────────────────────────────────────── */
-[data-bs-toggle="collapse"] .bi-chevron-down {
-  transition: transform 0.2s;
-}
-
-[data-bs-toggle="collapse"][aria-expanded="false"] .bi-chevron-down {
-  transform: rotate(-90deg);
-}
+/* ── Progress bar purple ─────────────────────────────────────────────────── */
+.bg-purple { background-color: #6c3483 !important; }
