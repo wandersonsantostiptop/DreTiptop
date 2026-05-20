@@ -48,8 +48,17 @@ def _seed_defaults():
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dre-tiptop-secret-2024-change-me')
-    db_path = os.path.join(os.path.dirname(__file__), 'dre.db')
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+
+    # PostgreSQL no Render/Supabase, SQLite local
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url:
+        # Supabase/Render envia 'postgres://' mas SQLAlchemy 2.x exige 'postgresql://'
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    else:
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        db_path = os.path.join(basedir, 'dre.db')
+        app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
