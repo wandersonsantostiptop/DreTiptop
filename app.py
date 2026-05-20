@@ -495,7 +495,21 @@ def create_app():
         try:
             user_count = User.query.count()
             store_count = Store.query.count()
-            return jsonify(status='ok', users=user_count, stores=store_count), 200
+            db_url = app.config['SQLALCHEMY_DATABASE_URI']
+            if 'postgresql' in db_url or 'postgres' in db_url:
+                db_type = 'postgresql'
+                # mostra só o host sem senha
+                host = db_url.split('@')[-1] if '@' in db_url else 'unknown'
+            else:
+                db_type = 'sqlite'
+                host = 'local'
+            return jsonify(
+                status='ok',
+                users=user_count,
+                stores=store_count,
+                db_type=db_type,
+                db_host=host
+            ), 200
         except Exception as e:
             return jsonify(status='error', message=str(e)), 500
 
