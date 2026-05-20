@@ -1,35 +1,32 @@
-"""Initialize the database with default data."""
-from app import app
-from models import db, User, Store, Parameter, SimplesNacionalTable
+"""Initialize the database with default data.
+Pode ser chamado diretamente (python init_db.py) ou importado pelo app.py.
+"""
+from models import db, Store, Parameter, SimplesNacionalTable
 
 
 def init_db():
-    with app.app_context():
-        db.create_all()
-        print("[OK] Tabelas criadas.")
+    """Cria tabelas e insere dados padrão se ainda não existirem."""
+    db.create_all()
 
-        # ── Default parameters ──────────────────────────────────────────────
-        defaults = [
-            # Taxas de cartão
-            ('taxa_cartao_credito', '0.01275', 'Taxa retida pela operadora – Crédito (1,275%)', 'taxas'),
-            ('taxa_cartao_debito',  '0.002225', 'Taxa retida pela operadora – Débito (0,2225%)', 'taxas'),
-            # Fundo de promoção
-            ('perc_fp_franquia', '0.012222', 'Fundo de Promoção da Franquia (1,2222%)', 'franquia'),
-            # Lucro Real
-            ('lr_pis',   '0.0165',  'PIS – Lucro Real (1,65%)', 'lucro_real'),
-            ('lr_cofins', '0.076',  'COFINS – Lucro Real (7,60%)', 'lucro_real'),
-            ('lr_irpj',  '0.15',   'IRPJ – Lucro Real (15%)', 'lucro_real'),
-            ('lr_csll',  '0.09',   'CSLL – Lucro Real (9%)', 'lucro_real'),
-            ('lr_irpj_adicional', '0.10', 'IRPJ Adicional – Lucro Real (10%)', 'lucro_real'),
-            ('lr_irpj_adicional_threshold', '20000.0',
-             'Limite mensal para adicional IRPJ (R$ 20.000)', 'lucro_real'),
-        ]
-        for key, value, desc, cat in defaults:
-            if not Parameter.query.filter_by(key=key).first():
-                db.session.add(Parameter(key=key, value=value, description=desc, category=cat))
-        print("[OK] Parâmetros padrão inseridos.")
+    # ── Default parameters ──────────────────────────────────────────────────
+    defaults = [
+        ('taxa_cartao_credito', '0.01275', 'Taxa retida pela operadora – Credito (1,275%)', 'taxas'),
+        ('taxa_cartao_debito',  '0.002225', 'Taxa retida pela operadora – Debito (0,2225%)', 'taxas'),
+        ('perc_fp_franquia', '0.012222', 'Fundo de Promocao da Franquia (1,2222%)', 'franquia'),
+        ('lr_pis',   '0.0165',  'PIS – Lucro Real (1,65%)', 'lucro_real'),
+        ('lr_cofins', '0.076',  'COFINS – Lucro Real (7,60%)', 'lucro_real'),
+        ('lr_irpj',  '0.15',   'IRPJ – Lucro Real (15%)', 'lucro_real'),
+        ('lr_csll',  '0.09',   'CSLL – Lucro Real (9%)', 'lucro_real'),
+        ('lr_irpj_adicional', '0.10', 'IRPJ Adicional – Lucro Real (10%)', 'lucro_real'),
+        ('lr_irpj_adicional_threshold', '20000.0',
+         'Limite mensal para adicional IRPJ (R$ 20.000)', 'lucro_real'),
+    ]
+    for key, value, desc, cat in defaults:
+        if not Parameter.query.filter_by(key=key).first():
+            db.session.add(Parameter(key=key, value=value, description=desc, category=cat))
 
-        # ── Simples Nacional – Anexo I (Comércio) ───────────────────────────
+    # ── Simples Nacional – Anexo I (Comercio) ──────────────────────────────
+    if SimplesNacionalTable.query.count() == 0:
         simples_table = [
             (0,          120000,    0.0400),
             (120000.01,  240000,    0.0547),
@@ -52,20 +49,20 @@ def init_db():
             (2160000.01, 2280000,   0.1151),
             (2280000.01, 4800000,   0.1161),
         ]
-        if SimplesNacionalTable.query.count() == 0:
-            for mn, mx, rate in simples_table:
-                db.session.add(SimplesNacionalTable(min_revenue=mn, max_revenue=mx, rate=rate))
-        print("[OK] Tabela Simples Nacional inserida.")
+        for mn, mx, rate in simples_table:
+            db.session.add(SimplesNacionalTable(min_revenue=mn, max_revenue=mx, rate=rate))
 
-        # ── Default store ───────────────────────────────────────────────────
-        if Store.query.count() == 0:
-            db.session.add(Store(name='Loja Modelo', city='Cidade'))
-        print("[OK] Loja padrão criada.")
+    # ── Loja padrao ─────────────────────────────────────────────────────────
+    if Store.query.count() == 0:
+        db.session.add(Store(name='Loja Modelo', city='Cidade'))
 
-        db.session.commit()
-        print("\n[DONE] Banco de dados inicializado!")
-        print("\nAcesse http://localhost:5000 e crie o primeiro usuário admin.")
+    db.session.commit()
 
 
 if __name__ == '__main__':
-    init_db()
+    # Chamado diretamente: precisa criar o contexto do app
+    from app import app
+    with app.app_context():
+        init_db()
+        print("[OK] Banco de dados inicializado!")
+        print("Acesse http://localhost:5000 e crie o primeiro usuario admin.")

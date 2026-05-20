@@ -590,5 +590,10 @@ def create_app():
 
 app = create_app()
 
+# Garante que as tabelas e dados padrão existam ao iniciar
+with app.app_context():
+    from init_db import init_db
+    init_db()
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
