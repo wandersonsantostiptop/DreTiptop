@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+{% block title %}{% if entry %}Editar DRE{% else %}Novo DRE{% endif %} – DRE Tiptop{% endblock %}
+
+{% macro field(label, name, val, help='', placeholder='0,00', type='number') %}
+<div class="mb-2">
+  <label class="form-label small fw-semibold mb-1">{{ label }}</label>
+  <input type="{{ type }}" name="{{ name }}" class="form-control form-control-sm"
+         value="{{ val if val else '' }}" placeholder="{{ placeholder }}"
+         {% if type == 'number' %}step="0.01" min="0"{% endif %}>
+  {% if help %}<div class="form-text">{{ help }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro fv(name) %}{{ (entry[name] if entry and entry[name] else 0) | round(2) if entry else '' }}{% endmacro %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="fw-bold mb-0">
+    <i class="bi bi-pencil-square me-2 text-primary"></i>
+    {% if entry %}Editar DRE – {{ MONTHS[entry.month] }}/{{ entry.year }}{% else %}Novo Lançamento DRE{% endif %}
+  </h3>
+  <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+</div>
+
+<form method="post" id="dreForm">
+  <!-- ── Cabeçalho ──────────────────────────────────────────────────────── -->
+  <div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold bg-primary text-white">
+      <i class="bi bi-info-circle me-2"></i>Identificação
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Loja *</label>
+          <select name="store_id" class="form-select" required>
+            {% for s in stores %}
+            <option value="{{ s.id }}" {% if s.id == store_id %}selected{% endif %}>
+              {{ s.name }}{% if s.city %} – {{ s.city }}{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-semibold">Mês *</label>
+          <select name="month" class="form-select" required>
+            {% for i in range(1, 13) %}
+            <option value="{{ i }}" {% if i == month %}selected{% endif %}>{{ MONTHS[i] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-semibold">Ano *</label>
+          <input type="number" name="year" class="form-control" required
+                 value="{{ year }}" min="2020" max="2030">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-semibold">Regime Tributário</label>
+          <select name="regime_tributario" class="form-select" id="regimeTrib">
+            <option value="simples" {% if not entry or entry.regime_tributario == 'simples' %}selected{% endif %}>
+              Simples Nacional
+            </option>
+            <option value="lucro_real" {% if entry and entry.regime_tributario == 'lucro_real' %}selected{% endif %}>
+              Lucro Real
+            </option>
+          </select>
+        </div>
+        <div class="col-md-2" id="receita12Field">
+          <label class="form-label fw-semibold">Receita 12 meses (R$)</label>
+          <input type="number" name="receita_12_meses" class="form-control" step="0.01" min="0"
+                 value="{{ entry.receita_12_meses if entry and entry.receita_12_meses else '' }}"
+                 placeholder="Para cálculo Simples">
+          <div class="form-text">Deixe em branco para usar fat. × 12</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Informações Gerenciais ─────────────────────────────────────────── -->
+  <div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold bg-secondary text-white d-flex justify-content-between"
+         role="button" data-bs-toggle="collapse" data-bs-target="#colGerencial">
+      <span><i class="bi bi-bar-chart me-2"></i>Informações Gerenciais</span>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+    <div class="collapse show" id="colGerencial">
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-md-2">{{ field('Meta de Vendas (R$)', 'meta_vendas', entry.meta_vendas if entry else '') }}</div>
+          <div class="col-md-2">
+            <label class="form-label small fw-semibold mb-1">Peças Vendidas</label>
+            <input type="number" name="pecas_vendidas" class="form-control form-control-sm"
+                   value="{{ entry.pecas_vendidas if entry else '' }}" placeholder="0" step="1" min="0">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small fw-semibold mb-1">Atendimentos</label>
+            <input type="number" name="atendimentos" class="form-control form-control-sm"
+                   value="{{ entry.atendimentos if entry else '' }}" placeholder="0" step="1" min="0">
+          </div>
+          <div class="col-md-2">{{ field('Mark-up', 'markup', entry.markup if entry else '', placeholder='2.50') }}</div>
+          <div class="col-md-2">
+            <label class="form-label small fw-semibold mb-1">Estoque (Qtd.)</label>
+            <input type="number" name="estoque_qtd" class="form-control form-control-sm"
+                   value="{{ entry.estoque_qtd if entry else '' }}" placeholder="0" step="1" min="0">
+          </div>
+          <div class="col-md-2">{{ field('Estoque (R$)', 'estoque_valor', entry.estoque_valor if entry else '') }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 1. Faturamento Bruto ───────────────────────────────────────────── -->
+  <div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold text-white" style="background:#1a6faf">
+      <i class="bi bi-cash-stack me-2"></i>1. Faturamento Bruto
+    </div>
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-md-4">{{ field('Produtos (R$) *', 'fat_produtos', entry.fat_produtos if entry else '') }}</div>
+        <div class="col-md-4">{{ field('Outros Faturamentos (R$)', 'fat_outros', entry.fat_outros if entry else '') }}</div>
+        <div class="col-md-4 d-flex align-items-end">
+          <div class="alert alert-primary py-2 px-3 w-100 mb-2">
+            <strong>Total: </strong><span id="totalFat">R$ 0,00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3. Despesas Variáveis – Gerais ─────────────────────────────────── -->
+  <div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold text-white d-flex justify-content-between"
+         style="background:#c0392b" role="button" data-bs-toggle="collapse" data-bs-target="#colDVG">
+      <span><i class="bi bi-percent me-2"></i>3. Despesas Variáveis – Gerais</span>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+    <div class="collapse show" id="colDVG">
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-md-3">{{ field('Inadimplência / Perdas e Roubos', 'inadimplencia', entry.inadimplencia if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Marketing Local / Vitrines / Brindes', 'marketing_local', entry.marketing_local if entry else '') }}</div>
+          <div class="col-md-3">
+            {{ field('Cartão Crédito – Valor Retido', 'cartao_credito_manual',
+               entry.cartao_credito_manual if entry and entry.cartao_credito_manual is not none else '',
+               help='Deixe vazio para calcular auto (1,275% do fat.)') }}
+          </div>
+          <div class="col-md-3">
+            {{ field('Cartão Débito – Valor Retido', 'cartao_debito_manual',
+               entry.cartao_debito_manual if entry and entry.cartao_debito_manual is not none else '',
+               help='Deixe vazio para calcular auto (0,2225% do fat.)') }}
+          </div>
+          <div class="col-md-3">{{ field('Embalagens e Frete Embalagem', 'embalagens_frete', entry.embalagens_frete if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Fretes Extras', 'fretes_extras', entry.fretes_extras if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Despesas Bancárias', 'despesas_bancarias', entry.despesas_bancarias if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Outros (1)', 'dv_gerais_outros1', entry.dv_gerais_outros1 if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Outros (2)', 'dv_gerais_outros2', entry.dv_gerais_outros2 if entry else '') }}</div>
+        </div>
+        <div class="alert alert-warning py-2 px-3 mt-2 small">
+          <i class="bi bi-info-circle me-1"></i>
+          <strong>Fundo de Promoção da Franquia</strong> é calculado automaticamente (1,2222% do faturamento).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 4. Despesas Variáveis – Pessoal ───────────────────────────────── -->
+  <div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold text-white d-flex justify-content-between"
+         style="background:#7d3c98" role="button" data-bs-toggle="collapse" data-bs-target="#colDVP">
+      <span><i class="bi bi-people me-2"></i>4. Despesas Variáveis – Pessoal</span>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+    <div class="collapse show" id="colDVP">
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-md-3">{{ field('Salário Gerente (Fixo+Com.+DSR)', 'salario_gerente', entry.salario_gerente if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Salário Vendedores e Estoquistas', 'salario_vendedores', entry.salario_vendedores if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Salário Supervisora', 'salario_supervisora', entry.salario_supervisora if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Salário Escritório / Apoio', 'salario_escritorio', entry.salario_escritorio if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Gincanas e Prêmios Diversos', 'gincanas_premios', entry.gincanas_premios if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Encargos – FGTS', 'fgts', entry.fgts if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Encargos – INSS', 'inss', entry.inss if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Encargos – Contrib. Sindical', 'contrib_sindical', entry.contrib_sindical if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Encargos – Outros', 'encargos_outros', entry.encargos_outros if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Vale Transporte', 'vale_transporte', entry.vale_transporte if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Vale Refeição', 'vale_refeicao', entry.vale_refeicao if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Benefícios Outros', 'beneficios_outros', entry.beneficios_outros if entry else '') }}</div>
+          <div class="col-md-3">{{ field('13º Salário', 'decimo_terceiro', entry.decimo_terceiro if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Férias', 'ferias', entry.ferias if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Rescisões Trabalhistas', 'rescisoes', entry.rescisoes if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Outros (1)', 'pessoal_outros1', entry.pessoal_outros1 if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Outros (2)', 'pessoal_outros2', entry.pessoal_outros2 if entry else '') }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 5. CMV + Royalties ─────────────────────────────────────────────── -->
+  <div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold text-white d-flex justify-content-between"
+         style="background:#117a65" role="button" data-bs-toggle="collapse" data-bs-target="#colCMV">
+      <span><i class="bi bi-box-seam me-2"></i>5. CMV + Royalties</span>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+    <div class="collapse show" id="colCMV">
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-md-3">{{ field('Produto TDB', 'cmv_tdb', entry.cmv_tdb if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Produto Terceiros e Acessórios', 'cmv_terceiros', entry.cmv_terceiros if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Royalties s/ Vestuário', 'royalties', entry.royalties if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Diferencial de ICMS', 'diferencial_icms', entry.diferencial_icms if entry else '') }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 6. Custos Fixos ────────────────────────────────────────────────── -->
+  <div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold text-white d-flex justify-content-between"
+         style="background:#b7770d" role="button" data-bs-toggle="collapse" data-bs-target="#colCF">
+      <span><i class="bi bi-building me-2"></i>6. Custos Fixos</span>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+    <div class="collapse show" id="colCF">
+      <div class="card-body">
+
+        <h6 class="text-muted small fw-bold mt-1 mb-2">OUTROS</h6>
+        <div class="row g-2 mb-3">
+          <div class="col-md-3">{{ field('Pró-labore com Encargos', 'pro_labore', entry.pro_labore if entry else '') }}</div>
+        </div>
+
+        <h6 class="text-muted small fw-bold mb-2">TERCEIROS / MANUTENÇÃO</h6>
+        <div class="row g-2 mb-3">
+          <div class="col-md-3">{{ field('Contabilidade', 'contabilidade', entry.contabilidade if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Limpeza', 'limpeza', entry.limpeza if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Software Microvix', 'software_microvix', entry.software_microvix if entry else '') }}</div>
+          <div class="col-md-3">{{ field('ECAD', 'ecad', entry.ecad if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Sonorização', 'sonorizacao', entry.sonorizacao if entry else '') }}</div>
+          <div class="col-md-3">{{ field('POS / TEF – Cartão Crédito', 'pos_tef', entry.pos_tef if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Seguros Loja', 'seguros', entry.seguros if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Manutenção Geral (Ar, Mob., Ilum.)', 'manutencao_geral', entry.manutencao_geral if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Giver / Omnichannel', 'giver_omnichannel', entry.giver_omnichannel if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Intranet', 'intranet', entry.intranet if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Anuidade Qlik Sense', 'qlik_sense', entry.qlik_sense if entry else '') }}</div>
+        </div>
+
+        <h6 class="text-muted small fw-bold mb-2">COMUNICAÇÃO</h6>
+        <div class="row g-2 mb-3">
+          <div class="col-md-3">{{ field('Internet', 'internet', entry.internet if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Telefonia Fixa e Celular', 'telefonia', entry.telefonia if entry else '') }}</div>
+        </div>
+
+        <h6 class="text-muted small fw-bold mb-2">SHOPPING / OCUPAÇÃO</h6>
+        <div class="row g-2 mb-3">
+          <div class="col-md-3">{{ field('Aluguel Percentual (Parcela Adicional)', 'aluguel_percentual', entry.aluguel_percentual if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Aluguel Mínimo', 'aluguel_minimo', entry.aluguel_minimo if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Condomínio', 'condominio', entry.condominio if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Fundo de Promoção Shopping', 'fp_shopping', entry.fp_shopping if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Energia Elétrica', 'energia_eletrica', entry.energia_eletrica if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Ar Condicionado', 'ar_condicionado', entry.ar_condicionado if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Água', 'agua', entry.agua if entry else '') }}</div>
+          <div class="col-md-3">{{ field('IPTU', 'iptu', entry.iptu if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Outros Impostos Municipais/Estaduais', 'outros_impostos_municipais', entry.outros_impostos_municipais if entry else '') }}</div>
+        </div>
+
+        <h6 class="text-muted small fw-bold mb-2">DIVERSOS</h6>
+        <div class="row g-2">
+          <div class="col-md-3">{{ field('Papelaria e Material Escritório', 'papelaria', entry.papelaria if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Provisão Inventário Anual', 'provisao_inventario', entry.provisao_inventario if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Uniformes', 'uniformes', entry.uniformes if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Outros Gastos Diversos (pequenos)', 'outros_gastos', entry.outros_gastos if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Viagens / Treinamentos', 'viagens_treinamentos', entry.viagens_treinamentos if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Outros (1)', 'cf_outros1', entry.cf_outros1 if entry else '') }}</div>
+          <div class="col-md-3">{{ field('Outros (2)', 'cf_outros2', entry.cf_outros2 if entry else '') }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Final ──────────────────────────────────────────────────────────── -->
+  <div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold text-white" style="background:#2c3e50">
+      <i class="bi bi-flag me-2"></i>Resultado Final
+    </div>
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-md-3">{{ field('Desconto (%)', 'desconto_percent',
+           entry.desconto_percent if entry else '', placeholder='0.00') }}</div>
+        <div class="col-md-3">{{ field('Retirada Adicional Sócios (R$)', 'retirada_socios',
+           entry.retirada_socios if entry else '') }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Buttons ────────────────────────────────────────────────────────── -->
+  <div class="d-flex gap-2 mb-5">
+    <button type="submit" class="btn btn-success btn-lg px-5">
+      <i class="bi bi-check-circle me-2"></i>
+      {% if entry %}Atualizar DRE{% else %}Salvar DRE{% endif %}
+    </button>
+    {% if entry %}
+    <a href="{{ url_for('dre_view', entry_id=entry.id) }}" class="btn btn-outline-primary btn-lg">
+      <i class="bi bi-eye me-1"></i>Ver DRE
+    </a>
+    {% endif %}
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+  </div>
+</form>
+
+{% endblock %}
+{% block scripts %}
+<script>
+function formatBRL(v){ return 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
+function getVal(name){ const el=document.querySelector('[name="'+name+'"]'); return el?parseFloat(el.value.replace(',','.'))||0:0; }
+
+document.getElementById('dreForm').addEventListener('input', function(){
+  const fat = getVal('fat_produtos') + getVal('fat_outros');
+  const el = document.getElementById('totalFat');
+  if(el) el.textContent = formatBRL(fat);
+});
+
+// Show/hide receita12 only relevant for simples
+const regimeEl = document.getElementById('regimeTrib');
+if(regimeEl){
+  regimeEl.addEventListener('change', function(){
+    // both regimes can use receita 12 meses, keep visible
+  });
+}
+</script>
+{% endblock %}

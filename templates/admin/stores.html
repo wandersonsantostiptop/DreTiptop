@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Lojas – Admin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="fw-bold mb-0"><i class="bi bi-shop me-2 text-primary"></i>Lojas</h3>
+  <a href="{{ url_for('admin_store_new') }}" class="btn btn-success btn-sm">
+    <i class="bi bi-plus me-1"></i>Nova Loja
+  </a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-dark">
+        <tr><th>#</th><th>Nome</th><th>Cidade</th><th>Status</th><th>Criada em</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for store in stores %}
+        <tr>
+          <td class="text-muted">{{ store.id }}</td>
+          <td class="fw-semibold">{{ store.name }}</td>
+          <td>{{ store.city or '–' }}</td>
+          <td>
+            <span class="badge {{ 'bg-success' if store.is_active else 'bg-secondary' }}">
+              {{ 'Ativa' if store.is_active else 'Inativa' }}
+            </span>
+          </td>
+          <td class="text-muted small">{{ store.created_at.strftime('%d/%m/%Y') }}</td>
+          <td>
+            <a href="{{ url_for('admin_store_edit', store_id=store.id) }}" class="btn btn-sm btn-outline-warning">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{{ url_for('dre_annual', store_id=store.id) }}" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-graph-up"></i>
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center text-muted py-4">Nenhuma loja cadastrada.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

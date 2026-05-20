@@ -1,0 +1,149 @@
+/* ── DRE Tiptop – Custom Styles ─────────────────────────────────────────── */
+
+:root {
+  --primary: #0d6efd;
+  --font-base: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  font-family: var(--font-base);
+  background: #f4f6f9;
+  font-size: 0.925rem;
+}
+
+/* ── Stat Cards ─────────────────────────────────────────────────────────── */
+.stat-card {
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 14px 16px;
+  min-height: 90px;
+  transition: transform 0.15s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+}
+
+.stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #6c757d;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stat-sub {
+  font-size: 0.78rem;
+  color: #6c757d;
+  margin-top: 2px;
+}
+
+/* ── Month Cards ────────────────────────────────────────────────────────── */
+.month-card {
+  display: block;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+  background: #fff;
+  transition: all 0.15s;
+  color: inherit;
+}
+
+.month-card:hover {
+  box-shadow: 0 3px 10px rgba(0,0,0,.12);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.month-card.empty {
+  background: #f8f9fa;
+  border-style: dashed;
+}
+
+.month-card.positive { border-left: 3px solid #198754; }
+.month-card.negative { border-left: 3px solid #dc3545; }
+
+.month-name {
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #495057;
+}
+
+.month-fat {
+  font-size: 0.7rem;
+  color: #6c757d;
+  margin-top: 2px;
+}
+
+.month-lucro {
+  font-weight: 700;
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+
+.month-pct {
+  font-size: 0.72rem;
+}
+
+/* ── DRE Table ──────────────────────────────────────────────────────────── */
+.dre-table td, .dre-table th {
+  padding: 5px 12px;
+  vertical-align: middle;
+}
+
+.dre-table tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.04);
+}
+
+/* ── Cards ──────────────────────────────────────────────────────────────── */
+.card {
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.08);
+}
+
+.card-header {
+  border-radius: 10px 10px 0 0 !important;
+  padding: 10px 16px;
+}
+
+/* ── Navbar ─────────────────────────────────────────────────────────────── */
+.navbar-brand {
+  font-size: 1.1rem;
+}
+
+/* ── Progress bar for "purple" ──────────────────────────────────────────── */
+.bg-purple { background-color: #7c3aed !important; }
+
+/* ── Print styles ───────────────────────────────────────────────────────── */
+@media print {
+  nav, .btn, .d-flex.gap-2, form { display: none !important; }
+  .card { box-shadow: none !important; border: 1px solid #ccc !important; }
+  body { background: white; }
+  .stat-card { min-height: auto; }
+}
+
+/* ── Form improvements ──────────────────────────────────────────────────── */
+.form-control:focus, .form-select:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+/* ── Collapsible section chevron ────────────────────────────────────────── */
+[data-bs-toggle="collapse"] .bi-chevron-down {
+  transition: transform 0.2s;
+}
+
+[data-bs-toggle="collapse"][aria-expanded="false"] .bi-chevron-down {
+  transform: rotate(-90deg);
+}

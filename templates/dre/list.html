@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Lançamentos DRE{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="fw-bold mb-0"><i class="bi bi-list-ul me-2 text-primary"></i>Lançamentos DRE</h3>
+  <a href="{{ url_for('dre_new') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus me-1"></i>Novo
+  </a>
+</div>
+
+<form class="card mb-3 shadow-sm p-3">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-2">
+      <label class="form-label small fw-semibold">Ano</label>
+      <select name="year" class="form-select form-select-sm">
+        {% for y in years %}
+        <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if current_user.is_admin() %}
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold">Loja</label>
+      <select name="store_id" class="form-select form-select-sm">
+        <option value="">Todas</option>
+        {% for s in stores %}
+        <option value="{{ s.id }}" {% if s.id == store_id %}selected{% endif %}>{{ s.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-outline-primary btn-sm w-100">Filtrar</button>
+    </div>
+  </div>
+</form>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th>Loja</th><th>Mês</th><th>Ano</th><th>Regime</th>
+            <th class="text-end">Faturamento</th>
+            <th class="text-end">Impostos</th>
+            <th class="text-end">CMV</th>
+            <th class="text-end">Lucro</th>
+            <th class="text-end">%</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in entries %}
+          {% set r = entry | calc_dre %}
+          <tr>
+            <td>{{ entry.store.name }}</td>
+            <td>{{ MONTHS[entry.month] }}</td>
+            <td>{{ entry.year }}</td>
+            <td>
+              <span class="badge {{ 'bg-success' if entry.regime_tributario == 'simples' else 'bg-info' }}">
+                {{ 'Simples' if entry.regime_tributario == 'simples' else 'Lucro Real' }}
+              </span>
+            </td>
+            <td class="text-end">{{ r.faturamento_bruto | brl }}</td>
+            <td class="text-end text-danger">{{ r.impostos | brl }}</td>
+            <td class="text-end text-warning">{{ r.cmv_total | brl }}</td>
+            <td class="text-end fw-bold {{ 'text-success' if r.lucro_liquido >= 0 else 'text-danger' }}">
+              {{ r.lucro_liquido | brl }}
+            </td>
+            <td class="text-end {{ 'text-success' if r.pct_lucro >= 0 else 'text-danger' }}">
+              {{ r.pct_lucro | pct }}
+            </td>
+            <td>
+              <a href="{{ url_for('dre_view', entry_id=entry.id) }}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-eye"></i>
+              </a>
+              <a href="{{ url_for('dre_edit', entry_id=entry.id) }}" class="btn btn-sm btn-outline-warning">
+                <i class="bi bi-pencil"></i>
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="10" class="text-center text-muted py-4">Nenhum lançamento encontrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

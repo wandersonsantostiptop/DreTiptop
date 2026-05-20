@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Painel Admin – DRE Tiptop{% endblock %}
+{% block content %}
+<h3 class="fw-bold mb-4"><i class="bi bi-speedometer2 me-2 text-primary"></i>Painel Administrativo</h3>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card bg-primary-subtle border-primary">
+      <div class="stat-label">Usuários cadastrados</div>
+      <div class="stat-value text-primary">{{ total_users }}</div>
+      <a href="{{ url_for('admin_users') }}" class="btn btn-sm btn-outline-primary mt-2">Gerenciar</a>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card bg-success-subtle border-success">
+      <div class="stat-label">Lojas cadastradas</div>
+      <div class="stat-value text-success">{{ total_stores }}</div>
+      <a href="{{ url_for('admin_stores') }}" class="btn btn-sm btn-outline-success mt-2">Gerenciar</a>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card bg-info-subtle border-info">
+      <div class="stat-label">Lançamentos DRE</div>
+      <div class="stat-value text-info">{{ total_entries }}</div>
+      <a href="{{ url_for('dre_list') }}" class="btn btn-sm btn-outline-info mt-2">Ver todos</a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-bold"><i class="bi bi-people me-2"></i>Gestão de Usuários</div>
+      <div class="card-body">
+        <p class="text-muted">Crie, edite ou desative usuários e vincule-os às lojas.</p>
+        <a href="{{ url_for('admin_users') }}" class="btn btn-primary me-2">Ver Usuários</a>
+        <a href="{{ url_for('register') }}" class="btn btn-outline-primary">Novo Usuário</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-bold"><i class="bi bi-shop me-2"></i>Gestão de Lojas</div>
+      <div class="card-body">
+        <p class="text-muted">Cadastre e gerencie as lojas participantes.</p>
+        <a href="{{ url_for('admin_stores') }}" class="btn btn-success me-2">Ver Lojas</a>
+        <a href="{{ url_for('admin_store_new') }}" class="btn btn-outline-success">Nova Loja</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-bold"><i class="bi bi-sliders me-2"></i>Parâmetros do Sistema</div>
+      <div class="card-body">
+        <p class="text-muted">Configure alíquotas, taxas de cartão, fundo de promoção e parâmetros de Lucro Real.</p>
+        <a href="{{ url_for('admin_params') }}" class="btn btn-warning">Editar Parâmetros</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-bold"><i class="bi bi-table me-2"></i>Tabela Simples Nacional</div>
+      <div class="card-body">
+        <p class="text-muted">Edite as faixas de alíquota do Simples Nacional (Anexo I – Comércio).</p>
+        <a href="{{ url_for('admin_simples') }}" class="btn btn-info text-white">Editar Tabela</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

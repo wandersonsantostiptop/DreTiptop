@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Tabela Simples Nacional – Admin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="fw-bold mb-0"><i class="bi bi-table me-2 text-primary"></i>Tabela Simples Nacional</h3>
+  <a href="{{ url_for('admin_index') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+</div>
+
+<div class="alert alert-info mb-3">
+  <i class="bi bi-info-circle me-2"></i>
+  Tabela Simples Nacional – Anexo I (Comércio). Receita bruta acumulada dos últimos 12 meses.
+  Alíquotas em <strong>%</strong> (ex: 4.00 = 4%).
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header fw-bold">Faixas Atuais</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-dark">
+          <tr><th>#</th><th>Receita De (R$)</th><th>Receita Até (R$)</th><th>Alíquota (%)</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for row in table %}
+          <tr>
+            <td class="text-muted">{{ loop.index }}</td>
+            <td>{{ row.min_revenue | brl }}</td>
+            <td>{{ row.max_revenue | brl }}</td>
+            <td class="fw-bold text-primary">{{ (row.rate * 100) | round(4) }}%</td>
+            <td>
+              <button class="btn btn-sm btn-outline-warning" type="button"
+                      onclick="showEditRow({{ row.id }}, {{ row.min_revenue }}, {{ row.max_revenue }}, {{ row.rate * 100 }})">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <form method="post" class="d-inline"
+                    onsubmit="return confirm('Remover esta faixa?')">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="id" value="{{ row.id }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Editar faixa (modal-like inline) -->
+<div id="editForm" class="card shadow-sm mb-4" style="display:none">
+  <div class="card-header fw-bold bg-warning text-dark">Editar Faixa</div>
+  <div class="card-body">
+    <form method="post">
+      <input type="hidden" name="action" value="update">
+      <input type="hidden" name="id" id="editId">
+      <div class="row g-2">
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Receita De (R$)</label>
+          <input type="number" name="min_revenue" id="editMin" class="form-control form-control-sm" step="0.01">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Receita Até (R$)</label>
+          <input type="number" name="max_revenue" id="editMax" class="form-control form-control-sm" step="0.01">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Alíquota (%)</label>
+          <input type="number" name="rate" id="editRate" class="form-control form-control-sm" step="0.0001" min="0" max="100">
+        </div>
+        <div class="col-md-2 d-flex align-items-end gap-1">
+          <button type="submit" class="btn btn-sm btn-warning">Salvar</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('editForm').style.display='none'">Cancelar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Adicionar nova faixa -->
+<div class="card shadow-sm">
+  <div class="card-header fw-bold bg-success text-white">
+    <i class="bi bi-plus-circle me-2"></i>Adicionar Nova Faixa
+  </div>
+  <div class="card-body">
+    <form method="post">
+      <input type="hidden" name="action" value="add">
+      <div class="row g-2">
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Receita De (R$)</label>
+          <input type="number" name="min_revenue" class="form-control form-control-sm" step="0.01" placeholder="0">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Receita Até (R$)</label>
+          <input type="number" name="max_revenue" class="form-control form-control-sm" step="0.01">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Alíquota (%)</label>
+          <input type="number" name="rate" class="form-control form-control-sm" step="0.0001" min="0" max="100" placeholder="4.00">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button type="submit" class="btn btn-sm btn-success w-100">
+            <i class="bi bi-plus me-1"></i>Adicionar
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function showEditRow(id, min, max, rate){
+  document.getElementById('editId').value = id;
+  document.getElementById('editMin').value = min;
+  document.getElementById('editMax').value = max;
+  document.getElementById('editRate').value = rate;
+  document.getElementById('editForm').style.display = 'block';
+  document.getElementById('editForm').scrollIntoView({behavior:'smooth'});
+}
+</script>
+{% endblock %}

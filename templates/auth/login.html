@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Login – DRE Tiptop{% endblock %}
+{% block content %}
+<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+  <div class="card shadow-lg" style="min-width:360px;max-width:420px;width:100%">
+    <div class="card-header bg-primary text-white text-center py-4">
+      <i class="bi bi-graph-up-arrow fs-1"></i>
+      <h4 class="mt-2 mb-0 fw-bold">DRE Tiptop</h4>
+      <small class="opacity-75">Gestão de Resultados</small>
+    </div>
+    <div class="card-body p-4">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} py-2">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Usuário ou E-mail</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" name="username" class="form-control" required autofocus
+                   placeholder="seu usuário ou e-mail">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Senha</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" name="password" class="form-control" required
+                   placeholder="••••••">
+            <button class="btn btn-outline-secondary" type="button" id="togglePw">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="mb-3 form-check">
+          <input type="checkbox" name="remember" class="form-check-input" id="remember">
+          <label class="form-check-label" for="remember">Lembrar-me</label>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+        </button>
+      </form>
+    </div>
+    <div class="card-footer text-center py-3 bg-light">
+      <small class="text-muted">Precisa de acesso? Contate o administrador.</small>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('togglePw').addEventListener('click', function(){
+  const pw = document.querySelector('input[name=password]');
+  const icon = this.querySelector('i');
+  if(pw.type==='password'){pw.type='text';icon.className='bi bi-eye-slash';}
+  else{pw.type='password';icon.className='bi bi-eye';}
+});
+</script>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard – DRE Tiptop{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="fw-bold mb-0"><i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard</h3>
+  <form class="d-flex gap-2 align-items-center">
+    <label class="fw-semibold me-1">Ano:</label>
+    <select name="year" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
+      {% for y in years %}
+      <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+      {% endfor %}
+    </select>
+    <a href="{{ url_for('dre_new') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-circle me-1"></i>Novo DRE
+    </a>
+  </form>
+</div>
+
+{% if not store_summaries %}
+<div class="text-center py-5">
+  <i class="bi bi-inbox display-1 text-muted"></i>
+  <h4 class="mt-3 text-muted">Nenhum dado disponível</h4>
+  <p class="text-muted">Comece inserindo um lançamento de DRE.</p>
+  <a href="{{ url_for('dre_new') }}" class="btn btn-primary">
+    <i class="bi bi-plus-circle me-1"></i>Novo DRE
+  </a>
+</div>
+{% endif %}
+
+{% for item in store_summaries %}
+{% set store = item.store %}
+{% set summary = item.summary %}
+<div class="card mb-4 shadow-sm">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+    <div>
+      <h5 class="mb-0 fw-bold text-primary">
+        <i class="bi bi-shop me-2"></i>{{ store.name }}
+        {% if store.city %}<span class="text-muted fw-normal fs-6">– {{ store.city }}</span>{% endif %}
+      </h5>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('dre_annual', store_id=store.id, year=year) }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-calendar3 me-1"></i>Ver Anual
+      </a>
+      <a href="{{ url_for('dre_new', store_id=store.id) }}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus me-1"></i>Lançar
+      </a>
+    </div>
+  </div>
+  <div class="card-body">
+    {% if summary %}
+    {% set t = summary.totals %}
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="stat-card bg-primary-subtle border-primary">
+          <div class="stat-label">Faturamento Total</div>
+          <div class="stat-value text-primary">{{ t.faturamento_bruto | brl }}</div>
+          <div class="stat-sub">{{ t.months_count }} meses</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card {{ 'bg-success-subtle border-success' if t.lucro_liquido >= 0 else 'bg-danger-subtle border-danger' }}">
+          <div class="stat-label">Lucro Líquido</div>
+          <div class="stat-value {{ 'text-success' if t.lucro_liquido >= 0 else 'text-danger' }}">
+            {{ t.lucro_liquido | brl }}
+          </div>
+          <div class="stat-sub">{{ t.lucratividade_pct | pct }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card bg-warning-subtle border-warning">
+          <div class="stat-label">CMV Total</div>
+          <div class="stat-value text-warning">{{ t.cmv_total | brl }}</div>
+          <div class="stat-sub">{{ t.pct_cmv | pct }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card bg-info-subtle border-info">
+          <div class="stat-label">Custos Fixos</div>
+          <div class="stat-value text-info">{{ t.custos_fixos | brl }}</div>
+          <div class="stat-sub">{{ t.pct_custos_fixos | pct }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Meses lançados -->
+    <h6 class="fw-semibold mb-3 text-muted">Lançamentos por mês – {{ year }}</h6>
+    <div class="row g-2">
+      {% set entry_months = summary.monthly | map(attribute='month') | list %}
+      {% for m in range(1, 13) %}
+      {% set monthly_data = summary.monthly | selectattr('month', 'equalto', m) | list %}
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+        {% if monthly_data %}
+        {% set r = monthly_data[0].result %}
+        <a href="{{ url_for('dre_list', year=year, store_id=store.id) }}"
+           class="month-card text-decoration-none {{ 'positive' if r.lucro_liquido >= 0 else 'negative' }}">
+          <div class="month-name">{{ MONTHS[m] }}</div>
+          <div class="month-fat">{{ r.faturamento_bruto | brl }}</div>
+          <div class="month-lucro {{ 'text-success' if r.lucro_liquido >= 0 else 'text-danger' }}">
+            {{ r.lucro_liquido | brl }}
+          </div>
+          <div class="month-pct {{ 'text-success' if r.pct_lucro >= 0 else 'text-danger' }}">
+            {{ r.pct_lucro | pct }}
+          </div>
+        </a>
+        {% else %}
+        <a href="{{ url_for('dre_new', store_id=store.id, year=year, month=m) }}"
+           class="month-card text-decoration-none empty">
+          <div class="month-name">{{ MONTHS[m] }}</div>
+          <div class="mt-2 text-muted small"><i class="bi bi-plus-circle"></i> Inserir</div>
+        </a>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-4 text-muted">
+      <i class="bi bi-calendar-x fs-3 mb-2 d-block"></i>
+      Nenhum lançamento para {{ year }}.
+      <div class="mt-2">
+        <a href="{{ url_for('dre_new', store_id=store.id, year=year) }}" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-plus me-1"></i>Inserir primeiro mês
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

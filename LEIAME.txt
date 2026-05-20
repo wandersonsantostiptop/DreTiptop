@@ -1,0 +1,51 @@
+====================================================
+  DRE Tiptop - Sistema de DRE para Franquias
+====================================================
+
+COMO USAR
+---------
+1. Abra o arquivo "iniciar.bat" (duplo clique)
+2. O servidor iniciara na porta 5000
+3. Abra o navegador em: http://localhost:5000
+   (ou acesso remoto: http://IP-DO-COMPUTADOR:5000)
+
+PRIMEIRO ACESSO
+---------------
+1. Acesse http://localhost:5000
+2. Sera exibida a tela de criacao do primeiro admin
+3. Crie seu usuario administrador
+4. Faca login
+
+CONFIGURACAO INICIAL (Admin)
+-----------------------------
+1. Lojas: Admin > Lojas > Nova Loja
+2. Usuarios: Admin > Usuarios > Novo Usuario
+   - Vincule cada usuario a uma loja
+   - Perfis: admin, gerente, usuario
+3. Parametros: Admin > Parametros
+   - Taxas de cartao, fundo de promocao, etc.
+4. Tabela Simples Nacional: Admin > Tabela Simples
+
+LANCAMENTO DE DRE
+-----------------
+- Acesse DRE > Novo Lancamento
+- Preencha: Loja, Mes, Ano, Regime Tributario
+- Insira os dados de faturamento e despesas
+- Salve - o sistema calcula tudo automaticamente
+
+ACESSO REMOTO
+-------------
+Para acessar de outros computadores/celulares na mesma rede:
+  http://192.168.X.X:5000  (substitua pelo IP do servidor)
+
+Para acesso pela internet (gratis):
+  Use ngrok: https://ngrok.com
+  Comando: ngrok http 5000
+
+CREDENCIAIS PADRÃO DE TESTE
+-----------------------------
+  Admin: admin / tiptop123
+
+====================================================
+  Suporte: dre@tiptop.com.br
+====================================================

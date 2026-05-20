@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}DRE Anual {{ year }} – {{ store.name if store else '' }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <h3 class="fw-bold mb-0">
+    <i class="bi bi-calendar3 me-2 text-primary"></i>DRE Anual {{ year }}
+    {% if store %}<span class="text-muted fs-5 fw-normal">– {{ store.name }}</span>{% endif %}
+  </h3>
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+    <form class="d-flex gap-2">
+      <select name="year" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
+        {% for y in years %}
+        <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+      {% if current_user.is_admin() %}
+      <select name="store_id" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
+        {% for s in stores %}
+        <option value="{{ s.id }}" {% if s.id == store_id %}selected{% endif %}>{{ s.name }}</option>
+        {% endfor %}
+      </select>
+      {% endif %}
+    </form>
+    <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-printer me-1"></i>Imprimir
+    </button>
+  </div>
+</div>
+
+{% if not summary %}
+<div class="alert alert-info">Nenhum dado disponível para {{ year }}.</div>
+{% else %}
+{% set t = summary.totals %}
+
+<!-- KPI Anual -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-primary-subtle border-primary">
+      <div class="stat-label">Faturamento Total</div>
+      <div class="stat-value text-primary">{{ t.faturamento_bruto | brl }}</div>
+      <div class="stat-sub">Média/mês: {{ (t.faturamento_bruto / t.months_count) | brl }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card {{ 'bg-success-subtle border-success' if t.lucro_liquido >= 0 else 'bg-danger-subtle border-danger' }}">
+      <div class="stat-label">Lucro Líquido</div>
+      <div class="stat-value {{ 'text-success' if t.lucro_liquido >= 0 else 'text-danger' }}">
+        {{ t.lucro_liquido | brl }}
+      </div>
+      <div class="stat-sub">{{ t.lucratividade_pct | pct }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-warning-subtle border-warning">
+      <div class="stat-label">Total Impostos</div>
+      <div class="stat-value text-warning">{{ t.impostos | brl }}</div>
+      <div class="stat-sub">{{ t.pct_impostos | pct }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-info-subtle border-info">
+      <div class="stat-label">CMV Total</div>
+      <div class="stat-value text-info">{{ t.cmv_total | brl }}</div>
+      <div class="stat-sub">{{ t.pct_cmv | pct }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabela mensal -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header fw-bold bg-dark text-white">
+    <i class="bi bi-table me-2"></i>Consolidado Mensal
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0" style="font-size:0.82rem">
+        <thead class="table-dark">
+          <tr>
+            <th>Descrição</th>
+            {% for item in summary.monthly %}
+            <th class="text-end">{{ MONTHS[item.month][:3] }}</th>
+            {% endfor %}
+            <th class="text-end table-warning">Total Ano</th>
+            <th class="text-end">%</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% macro annual_row(label, key, pct_key='', cls='') %}
+          <tr class="{{ cls }}">
+            <td class="fw-semibold">{{ label }}</td>
+            {% for item in summary.monthly %}
+            <td class="text-end {{ 'text-danger' if item.result[key] < 0 else '' }}">
+              {{ item.result[key] | brl }}
+            </td>
+            {% endfor %}
+            <td class="text-end fw-bold {{ 'text-danger' if t[key] < 0 else '' }}">{{ t[key] | brl }}</td>
+            <td class="text-end text-muted small">{{ t[pct_key] | pct if pct_key else '' }}</td>
+          </tr>
+          {% endmacro %}
+
+          {{ annual_row('1. Faturamento Bruto', 'faturamento_bruto', 'pct_impostos', 'table-primary') }}
+          {{ annual_row('2. Impostos', 'impostos', 'pct_impostos', '') }}
+          {{ annual_row('3. DV Gerais', 'dv_gerais', 'pct_dv_gerais') }}
+          {{ annual_row('4. DV Pessoal', 'dv_pessoal', 'pct_dv_pessoal') }}
+          {{ annual_row('5. CMV + Royalties', 'cmv_total', 'pct_cmv') }}
+          {{ annual_row('Margem de Contribuição', 'margem_contribuicao', 'pct_margem', 'table-success') }}
+          {{ annual_row('6. Custos Fixos', 'custos_fixos', 'pct_custos_fixos') }}
+          {{ annual_row('7. Lucro Líquido', 'lucro_liquido', 'pct_lucro', 'table-warning fw-bold') }}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Links para meses individuais -->
+<div class="card shadow-sm">
+  <div class="card-header fw-bold">Detalhe por Mês</div>
+  <div class="card-body">
+    <div class="row g-2">
+      {% for item in summary.monthly %}
+      <div class="col-6 col-sm-4 col-md-2">
+        {% set entry_id = entries | selectattr('month', 'equalto', item.month) | map(attribute='id') | first %}
+        <a href="{{ url_for('dre_view', entry_id=entry_id) }}"
+           class="month-card text-decoration-none {{ 'positive' if item.result.lucro_liquido >= 0 else 'negative' }}">
+          <div class="month-name">{{ MONTHS[item.month] }}</div>
+          <div class="month-fat">{{ item.result.faturamento_bruto | brl }}</div>
+          <div class="month-lucro {{ 'text-success' if item.result.lucro_liquido >= 0 else 'text-danger' }}">
+            {{ item.result.lucro_liquido | brl }}
+          </div>
+          <div class="month-pct {{ 'text-success' if item.result.pct_lucro >= 0 else 'text-danger' }}">
+            {{ item.result.pct_lucro | pct }}
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

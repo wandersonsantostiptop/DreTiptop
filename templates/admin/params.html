@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Parâmetros – Admin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="fw-bold mb-0"><i class="bi bi-sliders me-2 text-primary"></i>Parâmetros do Sistema</h3>
+  <a href="{{ url_for('admin_index') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+</div>
+
+<form method="post">
+  {% set cat_labels = {
+    'taxas': ('Taxas de Cartão', 'bi-credit-card', 'danger'),
+    'franquia': ('Franquia', 'bi-shop', 'success'),
+    'lucro_real': ('Lucro Real – Alíquotas', 'bi-calculator', 'info'),
+    'geral': ('Geral', 'bi-gear', 'secondary'),
+  } %}
+
+  {% for cat, params in by_category.items() %}
+  {% set label, icon, color = cat_labels.get(cat, (cat, 'bi-gear', 'secondary')) %}
+  <div class="card shadow-sm mb-3">
+    <div class="card-header fw-bold text-white bg-{{ color }}">
+      <i class="bi {{ icon }} me-2"></i>{{ label }}
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for p in params %}
+        <div class="col-md-4">
+          <label class="form-label fw-semibold small">
+            {{ p.description or p.key }}
+          </label>
+          <div class="input-group input-group-sm">
+            <input type="text" name="param_{{ p.key }}" class="form-control"
+                   value="{{ p.value }}" inputmode="decimal">
+            <span class="input-group-text text-muted" style="font-size:0.75rem">{{ p.key }}</span>
+          </div>
+          {% if 'rate' in p.key or p.key.startswith('lr_') and p.key not in ('lr_irpj_adicional_threshold',) %}
+          <div class="form-text">Use formato decimal: ex. 0.0165 = 1,65%</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="d-flex gap-2 mb-4">
+    <button type="submit" class="btn btn-primary btn-lg px-5">
+      <i class="bi bi-check-circle me-2"></i>Salvar Parâmetros
+    </button>
+    <a href="{{ url_for('admin_index') }}" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+  </div>
+</form>
+
+<div class="alert alert-info">
+  <i class="bi bi-info-circle me-2"></i>
+  <strong>Importante:</strong> Alterações nos parâmetros afetam o cálculo de <em>novos</em> DREs e também
+  recalculam os existentes. Use decimais para alíquotas (ex: 0.15 = 15%). Para o limiar do IRPJ Adicional,
+  use o valor em R$ (ex: 20000.00 = R$ 20.000).
+</div>
+{% endblock %}

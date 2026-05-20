@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% block title %}DRE {{ MONTHS[entry.month] }}/{{ entry.year }} – {{ entry.store.name }}{% endblock %}
+
+{% macro row(label, value, pct_val='', cls='', indent=0) %}
+<tr class="{{ cls }}">
+  <td style="padding-left:{{ (indent * 20) + 12 }}px">{{ label }}</td>
+  <td class="text-end fw-semibold {{ 'text-danger' if value < 0 else '' }}">
+    {{ value | brl }}
+  </td>
+  <td class="text-end text-muted small">
+    {% if pct_val is not none and pct_val != '' %}{{ pct_val | pct }}{% endif %}
+  </td>
+</tr>
+{% endmacro %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-0">
+      <i class="bi bi-file-earmark-bar-graph me-2 text-primary"></i>
+      DRE – {{ MONTHS[entry.month] }}/{{ entry.year }}
+    </h3>
+    <div class="text-muted">
+      <i class="bi bi-shop me-1"></i>{{ entry.store.name }}
+      {% if entry.store.city %}– {{ entry.store.city }}{% endif %}
+      <span class="badge {{ 'bg-success' if entry.regime_tributario == 'simples' else 'bg-info' }} ms-2">
+        {{ 'Simples Nacional' if entry.regime_tributario == 'simples' else 'Lucro Real' }}
+      </span>
+    </div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('dre_edit', entry_id=entry.id) }}" class="btn btn-warning btn-sm">
+      <i class="bi bi-pencil me-1"></i>Editar
+    </a>
+    <a href="{{ url_for('dre_annual', store_id=entry.store_id, year=entry.year) }}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-calendar3 me-1"></i>Ver Anual
+    </a>
+    <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-printer me-1"></i>Imprimir
+    </button>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i>Voltar
+    </a>
+  </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-primary-subtle border-primary">
+      <div class="stat-label">Faturamento Bruto</div>
+      <div class="stat-value text-primary">{{ result.faturamento_bruto | brl }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card {{ 'bg-success-subtle border-success' if result.lucro_liquido >= 0 else 'bg-danger-subtle border-danger' }}">
+      <div class="stat-label">Lucro Líquido</div>
+      <div class="stat-value {{ 'text-success' if result.lucro_liquido >= 0 else 'text-danger' }}">
+        {{ result.lucro_liquido | brl }}
+      </div>
+      <div class="stat-sub">{{ result.lucratividade_pct | pct }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-warning-subtle border-warning">
+      <div class="stat-label">Ponto de Equilíbrio</div>
+      <div class="stat-value text-warning">{{ result.ponto_equilibrio | brl }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card bg-info-subtle border-info">
+      <div class="stat-label">Margem de Contribuição</div>
+      <div class="stat-value text-info">{{ result.margem_contribuicao | brl }}</div>
+      <div class="stat-sub">{{ result.pct_margem | pct }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Indicadores Gerenciais -->
+  <div class="col-md-5">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-bold bg-secondary text-white">
+        <i class="bi bi-bar-chart me-2"></i>Indicadores Gerenciais
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <tbody>
+            <tr><td>Meta de Vendas</td><td class="text-end fw-semibold">{{ entry.meta_vendas | brl }}</td></tr>
+            <tr><td>Peças Vendidas</td><td class="text-end fw-semibold">{{ entry.pecas_vendidas }}</td></tr>
+            <tr><td>Atendimentos</td><td class="text-end fw-semibold">{{ entry.atendimentos }}</td></tr>
+            <tr><td>Ticket Médio</td><td class="text-end fw-semibold">{{ result.ticket_medio | brl }}</td></tr>
+            <tr><td>PA (Peças/Atendimento)</td><td class="text-end fw-semibold">{{ '%.2f' | format(result.pa) }}</td></tr>
+            <tr><td>Preço Médio</td><td class="text-end fw-semibold">{{ result.preco_medio | brl }}</td></tr>
+            <tr><td>Mark-up</td><td class="text-end fw-semibold">{{ '%.2f' | format(entry.markup) }}</td></tr>
+            <tr><td>Lucratividade R$</td>
+              <td class="text-end fw-bold {{ 'text-success' if result.lucro_liquido >= 0 else 'text-danger' }}">
+                {{ result.lucro_liquido | brl }}
+              </td>
+            </tr>
+            <tr><td>Lucratividade %</td>
+              <td class="text-end fw-bold {{ 'text-success' if result.lucratividade_pct >= 0 else 'text-danger' }}">
+                {{ result.lucratividade_pct | pct }}
+              </td>
+            </tr>
+            <tr><td>Qtd. Estoque (fim mês)</td><td class="text-end fw-semibold">{{ entry.estoque_qtd }}</td></tr>
+            <tr><td>Valor Estoque (R$)</td><td class="text-end fw-semibold">{{ entry.estoque_valor | brl }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Composição das Despesas -->
+  <div class="col-md-7">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-bold bg-secondary text-white">
+        <i class="bi bi-pie-chart me-2"></i>Composição (% sobre Faturamento)
+      </div>
+      <div class="card-body">
+        {% set bars = [
+          ('Impostos', result.pct_impostos, 'danger'),
+          ('DV Gerais', result.pct_dv_gerais, 'warning'),
+          ('DV Pessoal', result.pct_dv_pessoal, 'purple'),
+          ('CMV', result.pct_cmv, 'info'),
+          ('Custos Fixos', result.pct_custos_fixos, 'secondary'),
+          ('Lucro', result.pct_lucro, 'success' if result.pct_lucro >= 0 else 'danger'),
+        ] %}
+        {% for label, val, color in bars %}
+        <div class="mb-2">
+          <div class="d-flex justify-content-between small">
+            <span>{{ label }}</span>
+            <span class="fw-bold {{ 'text-danger' if val < 0 else '' }}">{{ val | pct }}</span>
+          </div>
+          <div class="progress" style="height:8px">
+            <div class="progress-bar bg-{{ color }}"
+                 style="width:{{ [val | abs, 100] | min }}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DRE Completo -->
+<div class="card shadow-sm">
+  <div class="card-header fw-bold bg-dark text-white d-flex justify-content-between">
+    <span><i class="bi bi-file-text me-2"></i>DRE Completo</span>
+    <span class="small fw-normal opacity-75">{{ MONTHS[entry.month] }}/{{ entry.year }} – {{ entry.store.name }}</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm dre-table mb-0">
+        <thead>
+          <tr class="table-light">
+            <th style="width:55%">Descrição</th>
+            <th class="text-end">Valor (R$)</th>
+            <th class="text-end">% Fat.</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{ row('1. FATURAMENTO BRUTO', result.faturamento_bruto, 100, 'table-primary fw-bold') }}
+          {{ row('Produtos', entry.fat_produtos, '', '', 1) }}
+          {% if entry.fat_outros %}{{ row('Outros', entry.fat_outros, '', '', 1) }}{% endif %}
+
+          {{ row('2. IMPOSTOS', -result.impostos, result.pct_impostos, 'table-danger fw-bold') }}
+          {% if entry.regime_tributario == 'simples' %}
+          {{ row('Simples Nacional (' ~ (result.impostos_detail.aliquota_simples | pct) ~ ')', result.impostos_detail.simples_nacional, '', '', 1) }}
+          {% else %}
+          {{ row('PIS (' ~ (result.impostos_detail.lr_pis_rate | pct) ~ ')', result.impostos_detail.pis, '', '', 1) }}
+          {{ row('COFINS (' ~ (result.impostos_detail.lr_cofins_rate | pct) ~ ')', result.impostos_detail.cofins, '', '', 1) }}
+          {% if result.impostos_detail.irpj is defined %}
+          {{ row('IRPJ', result.impostos_detail.irpj, '', '', 1) }}
+          {{ row('CSLL', result.impostos_detail.csll, '', '', 1) }}
+          {% endif %}
+          {% endif %}
+
+          {{ row('3. DESPESAS VARIÁVEIS – GERAIS', -result.dv_gerais, result.pct_dv_gerais, 'table-warning fw-bold') }}
+          {% if entry.inadimplencia %}{{ row('Inadimplência / Perdas e Roubos', entry.inadimplencia, '', '', 1) }}{% endif %}
+          {% if entry.marketing_local %}{{ row('Marketing Local / Vitrines / Brindes', entry.marketing_local, '', '', 1) }}{% endif %}
+          {{ row('Cartão de Crédito', result.cartao_credito, '', '', 1) }}
+          {{ row('Cartão de Débito', result.cartao_debito, '', '', 1) }}
+          {% if entry.embalagens_frete %}{{ row('Embalagens e Frete', entry.embalagens_frete, '', '', 1) }}{% endif %}
+          {% if entry.fretes_extras %}{{ row('Fretes Extras', entry.fretes_extras, '', '', 1) }}{% endif %}
+          {% if entry.despesas_bancarias %}{{ row('Despesas Bancárias', entry.despesas_bancarias, '', '', 1) }}{% endif %}
+          {{ row('Fundo de Promoção da Franquia', result.fp_franquia, '', '', 1) }}
+
+          {{ row('4. DESPESAS VARIÁVEIS – PESSOAL', -result.dv_pessoal, result.pct_dv_pessoal, 'fw-bold', 0) }}
+          {% if entry.salario_gerente %}{{ row('Salário Gerente', entry.salario_gerente, '', '', 1) }}{% endif %}
+          {% if entry.salario_vendedores %}{{ row('Salário Vendedores e Estoquistas', entry.salario_vendedores, '', '', 1) }}{% endif %}
+          {% if entry.salario_supervisora %}{{ row('Salário Supervisora', entry.salario_supervisora, '', '', 1) }}{% endif %}
+          {% if entry.fgts %}{{ row('FGTS', entry.fgts, '', '', 1) }}{% endif %}
+          {% if entry.inss %}{{ row('INSS', entry.inss, '', '', 1) }}{% endif %}
+          {% if entry.vale_transporte %}{{ row('Vale Transporte', entry.vale_transporte, '', '', 1) }}{% endif %}
+          {% if entry.vale_refeicao %}{{ row('Vale Refeição', entry.vale_refeicao, '', '', 1) }}{% endif %}
+          {% if entry.decimo_terceiro %}{{ row('13º Salário', entry.decimo_terceiro, '', '', 1) }}{% endif %}
+          {% if entry.ferias %}{{ row('Férias', entry.ferias, '', '', 1) }}{% endif %}
+
+          {{ row('5. CMV + ROYALTIES', -result.cmv_total, result.pct_cmv, 'table-info fw-bold') }}
+          {% if entry.cmv_tdb %}{{ row('Produto TDB', entry.cmv_tdb, '', '', 1) }}{% endif %}
+          {% if entry.cmv_terceiros %}{{ row('Produto Terceiros e Acessórios', entry.cmv_terceiros, '', '', 1) }}{% endif %}
+          {% if entry.royalties %}{{ row('Royalties s/ Vestuário', entry.royalties, '', '', 1) }}{% endif %}
+          {% if entry.diferencial_icms %}{{ row('Diferencial de ICMS', entry.diferencial_icms, '', '', 1) }}{% endif %}
+
+          {{ row('MARGEM DE CONTRIBUIÇÃO', result.margem_contribuicao, result.pct_margem,
+                 'table-success fw-bold fs-6' if result.margem_contribuicao >= 0 else 'table-danger fw-bold fs-6') }}
+
+          {{ row('6. CUSTOS FIXOS', -result.custos_fixos, result.pct_custos_fixos, 'fw-bold') }}
+          {% if entry.pro_labore %}{{ row('Pró-labore', entry.pro_labore, '', '', 1) }}{% endif %}
+          {% if entry.contabilidade %}{{ row('Contabilidade', entry.contabilidade, '', '', 1) }}{% endif %}
+          {% if entry.limpeza %}{{ row('Limpeza', entry.limpeza, '', '', 1) }}{% endif %}
+          {% if entry.software_microvix %}{{ row('Microvix', entry.software_microvix, '', '', 1) }}{% endif %}
+          {% if entry.aluguel_minimo %}{{ row('Aluguel Mínimo', entry.aluguel_minimo, '', '', 1) }}{% endif %}
+          {% if entry.aluguel_percentual %}{{ row('Aluguel Percentual', entry.aluguel_percentual, '', '', 1) }}{% endif %}
+          {% if entry.condominio %}{{ row('Condomínio', entry.condominio, '', '', 1) }}{% endif %}
+          {% if entry.energia_eletrica %}{{ row('Energia Elétrica', entry.energia_eletrica, '', '', 1) }}{% endif %}
+          {% if entry.ar_condicionado %}{{ row('Ar Condicionado', entry.ar_condicionado, '', '', 1) }}{% endif %}
+          {% if entry.iptu %}{{ row('IPTU', entry.iptu, '', '', 1) }}{% endif %}
+          {% if entry.internet %}{{ row('Internet', entry.internet, '', '', 1) }}{% endif %}
+          {% if entry.telefonia %}{{ row('Telefonia', entry.telefonia, '', '', 1) }}{% endif %}
+
+          {{ row('7. LUCRO LÍQUIDO FINAL', result.lucro_liquido, result.pct_lucro,
+                 'table-success fw-bold fs-6' if result.lucro_liquido >= 0 else 'table-danger fw-bold fs-6') }}
+
+          {% if entry.desconto_percent %}
+          {{ row('Desconto (' ~ entry.desconto_percent ~ '%)', result.desconto_valor, '', 'text-muted', 1) }}
+          {{ row('Lucro Após Desconto', result.lucro_apos_desconto, '', 'fw-bold') }}
+          {% endif %}
+
+          {% if entry.retirada_socios %}
+          {{ row('8. Retirada Adicional Sócios', entry.retirada_socios, '', '', 1) }}
+          {{ row('9. Resultado Após Retirada', result.resultado_final, '',
+                 'table-success fw-bold' if result.resultado_final >= 0 else 'table-danger fw-bold') }}
+          {% endif %}
+
+          <tr class="table-light">
+            <td class="fw-bold">Ponto de Equilíbrio</td>
+            <td class="text-end fw-bold text-warning">{{ result.ponto_equilibrio | brl }}</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% if current_user.is_manager() %}
+<div class="mt-3">
+  <form method="post" action="{{ url_for('dre_delete', entry_id=entry.id) }}"
+        onsubmit="return confirm('Tem certeza que deseja excluir este DRE?')">
+    <button type="submit" class="btn btn-outline-danger btn-sm">
+      <i class="bi bi-trash me-1"></i>Excluir DRE
+    </button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}
