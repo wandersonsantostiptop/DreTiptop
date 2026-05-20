@@ -13,10 +13,12 @@
 {% if current_user.is_authenticated %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">
-      <i class="bi bi-graph-up-arrow me-2" style="color:var(--tt-blue)"></i>
-      <span style="color:#fff;font-weight:800;letter-spacing:-0.3px">DRE</span>
-      <span style="color:var(--tt-blue);font-weight:800"> Tiptop</span>
+    <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+      <div class="brand-logo-circle">🎈</div>
+      <div class="brand-text ms-2">
+        <span class="brand-dre">DRE</span>
+        <span class="brand-tiptop">tip<span>top</span></span>
+      </div>
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
       <span class="navbar-toggler-icon"></span>
